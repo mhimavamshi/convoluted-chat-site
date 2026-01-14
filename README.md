@@ -9,5 +9,18 @@ Well, that's convoluted. ...And gives rise to unecessary problems.
 So let's make unecessary solutions.
 
 ## Architecture/Flow
-Yet to do.
+htmx for front-end
+each browser is a consumer over SSE
+each message REST call is a producer of messages
+message broker between them: NATS
+subjects are chat groups
+API call to have username, chat group REST API
 
+
+Backend flow:
+
+Browsers (Subscribers) <--- SSE (chat group in params) --- Server 
+Server subscribers on behalf of browser <--- NATS (subject = chat group)
+
+Browsers (Producer) ---> Server --- REST API (chat group, username, message) 
+Server produces on behalf of browser ----> NATS (subject = chat group)
