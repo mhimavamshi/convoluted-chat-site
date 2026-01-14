@@ -8,6 +8,8 @@ Kinda like Pub/Sub.
 Well, that's convoluted. ...And gives rise to unecessary problems.
 So let's make unecessary solutions.
 
+P.S. This is intentionally convoluted and single-node and exists purely for learning, experimentation. Adding sharding, or partition logs etc., or understanding why message brokers are there and problems without WebSockets and so on...
+
 ## Architecture/Flow
 htmx for front-end
 each browser is a consumer over SSE
@@ -33,5 +35,12 @@ that TCP server takes a connection and a command:
 - EXIT: closes the connection that sent it (must be SUB connection)
 
 we will handle the failure case of SUB connection being lost (for now just remove from hashmap) and add PING/PONG 
+
+There is:
+- No persistence
+- No acknowledgements
+- No retries
+- No ordering guarantees beyond TCP
+
 
 client library just does a light abstraction over these commands
