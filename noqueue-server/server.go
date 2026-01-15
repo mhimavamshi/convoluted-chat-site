@@ -114,7 +114,7 @@ func handlePublish() {
 func broadcastMessage(topic Topic, message string) int {
 	clientsmap.mut.Lock()
 	clients := append([]*Client(nil), clientsmap.clients[topic]...)
-	defer clientsmap.mut.Unlock()
+	clientsmap.mut.Unlock()
 
 	count := 0
 
@@ -157,7 +157,11 @@ func handleExit(conn net.Conn) {
 				filtered = append(filtered, c)
 			}
 		}
-		clientsmap.clients[topic] = filtered
+		if len(filtered) == 0 {
+			delete(clientsmap.clients, topic)
+		} else {
+			clientsmap.clients[topic] = filtered
+		}
 	}
 	fmt.Println("A client dropped by EXIT command...")
 }
