@@ -7,6 +7,7 @@ import (
 )
 
 const (
+	PORT int = 8090
 	PUBLISHWORKERS int = 3
 	CONNWORKERS int = 3
 )
@@ -21,6 +22,7 @@ func setupWorkers() {
 	for range PUBLISHWORKERS {
 		go handlePublish()
 	}
+	fmt.Printf("Spawned %d workers for handling PUB commands\n", PUBLISHWORKERS)
 
 }
 
@@ -39,16 +41,15 @@ func startServer() {
 		clients: make(map[Topic][]*Client),
 	}
 
-	fmt.Println("listening at localhost:8090")
+	fmt.Printf("server listening at localhost:%d\n", PORT)
 	for {
 
 		conn, err := listener.Accept()
 		if err != nil {
-			fmt.Println(err)
+			fmt.Printf("Accept error: %v\n", err)
 			continue
 		}
 
-		// send to worker pool to handle connection
 		go handleConnection(conn)
 
 	}
@@ -56,21 +57,21 @@ func startServer() {
 }
 
 func handleConnection(conn net.Conn) {
-	fmt.Println(conn)
+	fmt.Println("handling a new client connection...")
 	reader := bufio.NewReader(conn)
 
 	for {
 
 		message, err := reader.ReadString('\n')
 		if err != nil {
-			fmt.Printf("Read error: %v", err)
+			fmt.Printf("Read error: %v\n", err)
 			conn.Close()
 			break 
 		}
 
 		action, data, err := parseMessage(message)
 		if err != nil {
-			fmt.Printf("Action error: %v", err)
+			fmt.Printf("Action error: %v\n", err)
 			conn.Close()
 			break
 		}
@@ -86,15 +87,15 @@ func handleAction(action ActionType, data ActionData, conn net.Conn) bool  {
 	case PUB:
 		data, err := parsePubData(data)
 		if err != nil {
-			fmt.Printf("PUB data parse error: %v", err)
-			break
+			fmt.Printf("PUB data parse error: %v\n", err)
+			break // keep alive (for now) or close connection 
 		}
 		pubchan <- data
 	case SUB:
 		data, err := parseSubData(data)
 		if err != nil {
-			fmt.Printf("SUB data parse error: %v", err)
-			break
+			fmt.Printf("SUB data parse error: %v\n", err)
+			break // keep alive (for now) or close connection 
 		}
 		handleSubscribe(data, conn)
 	case EXIT:
@@ -107,7 +108,7 @@ func handleAction(action ActionType, data ActionData, conn net.Conn) bool  {
 func handlePublish() {
 	for data := range pubchan {
 		count := broadcastMessage(data.topic, data.message)
-		fmt.Printf("broadcasted to %d subscribers to %s\n", count, data.topic)
+		fmt.Printf("broadcasted to %d subscribers of %s\n", count, data.topic)
 	}
 }
 
@@ -121,7 +122,7 @@ func broadcastMessage(topic Topic, message string) int {
 	for _, client := range clients {
 		err := client.sendMessage(message + "\n")
 		if err != nil {
-			fmt.Printf("BROADCAST sending message error: %v", err)
+			fmt.Printf("Broadcast sending message error: %v\n", err)
 			continue
 		}
 		count++
@@ -159,5 +160,5 @@ func handleExit(conn net.Conn) {
 		}
 		clientsmap.clients[topic] = filtered
 	}
-
+	fmt.Println("A client dropped by EXIT command...")
 }
