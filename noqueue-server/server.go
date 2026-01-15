@@ -9,15 +9,14 @@ import (
 const (
 	PORT int = 8090
 	PUBLISHWORKERS int = 3
-	CONNWORKERS int = 3
+	PUBLISHWORKERBUFFER int = 40
 )
 
 var pubchan chan pubData
-var handlerchan chan net.Conn 
 var clientsmap SafeClients
 
 func setupWorkers() {
-	pubchan, handlerchan = make(chan pubData, 30), make(chan net.Conn, 30)
+	pubchan = make(chan pubData, PUBLISHWORKERBUFFER)
 
 	for range PUBLISHWORKERS {
 		go handlePublish()
