@@ -64,7 +64,7 @@ func handleConnection(conn net.Conn) {
 		message, err := reader.ReadString('\n')
 		if err != nil {
 			fmt.Printf("Read error: %v\n", err)
-			conn.Close()
+			handleExit(conn)
 			break 
 		}
 
@@ -122,7 +122,7 @@ func broadcastMessage(topic Topic, message string) int {
 		err := client.sendMessage(message + "\n")
 		if err != nil {
 			fmt.Printf("Broadcast sending message error: %v\n", err)
-			continue
+			handleExit(client.conn)
 		}
 		count++
 	}
