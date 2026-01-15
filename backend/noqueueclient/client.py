@@ -27,7 +27,6 @@ class NoqueueClient:
         if self.connected:
             return
         self.reader, self.writer = await asyncio.open_connection(self.host, self.port)
-        print("CONNECTED")
         self.connected = True
 
     async def send(self, message):
@@ -54,7 +53,7 @@ class NoqueueSubscriber(NoqueueClient):
         sub_message = NoqueueMessage("SUB", {"topic": topic})
         await self.send(sub_message)
 
-    async def wait_for_message(self):
+    async def messages(self):
         if not self.connected:
             raise Exception("Waiting for message on an unconnected NoqueueSubscriber")
         while True:
@@ -64,7 +63,7 @@ class NoqueueSubscriber(NoqueueClient):
             yield data.decode().rstrip("\n")
         
     def __aiter__(self):
-        return self.wait_for_message()
+        return self.messages()
 
 
 class NoqueuePublisher(NoqueueClient):
