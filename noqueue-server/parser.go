@@ -53,10 +53,10 @@ func parseMessage(message string) (ActionType, ActionData, error) {
 }
 
 func parsePubData(data ActionData) (pubData, error) {
-	if len(data) != 2 {
+	if len(data) < 2 {
 		return pubData{}, errors.New("Invalid amount of data for PUB action")
 	}
-	return pubData{topic: Topic(data[0]), message: data[1]}, nil
+	return pubData{topic: Topic(data[0]), message: strings.Join(data[1:], " ")}, nil
 }
 
 func parseSubData(data ActionData) (subData, error) {
