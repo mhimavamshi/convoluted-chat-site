@@ -1,1 +1,3 @@
 noqueue-server/noqueue-server
+*/.venv
+__pycache__
