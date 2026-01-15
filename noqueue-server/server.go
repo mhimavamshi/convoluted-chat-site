@@ -22,9 +22,6 @@ func setupWorkers() {
 		go handlePublish()
 	}
 
-	for range CONNWORKERS {
-		go handleConnection()
-	}
 }
 
 
@@ -52,38 +49,35 @@ func startServer() {
 		}
 
 		// send to worker pool to handle connection
-		handlerchan <- conn
+		go handleConnection(conn)
 
 	}
 
 }
 
-func handleConnection() {
-	for conn := range handlerchan {
-		fmt.Println(conn)
-		reader := bufio.NewReader(conn)
+func handleConnection(conn net.Conn) {
+	fmt.Println(conn)
+	reader := bufio.NewReader(conn)
 
-		for {
+	for {
 
-			message, err := reader.ReadString('\n')
-			if err != nil {
-				fmt.Printf("Read error: %v", err)
-				conn.Close()
-				break 
-			}
-
-			action, data, err := parseMessage(message)
-			if err != nil {
-				fmt.Printf("Action error: %v", err)
-				conn.Close()
-				break
-			}
-			shouldExit := handleAction(action, data, conn)
-			if shouldExit {
-				break
-			}
+		message, err := reader.ReadString('\n')
+		if err != nil {
+			fmt.Printf("Read error: %v", err)
+			conn.Close()
+			break 
 		}
 
+		action, data, err := parseMessage(message)
+		if err != nil {
+			fmt.Printf("Action error: %v", err)
+			conn.Close()
+			break
+		}
+		shouldExit := handleAction(action, data, conn)
+		if shouldExit {
+			break
+		}
 	}
 }
 
